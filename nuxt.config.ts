@@ -6,7 +6,7 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
-  modules: ['@nuxt/ui', '@nuxtjs/supabase', '@vite-pwa/nuxt'],
+  modules: ['@nuxt/ui', '@nuxtjs/supabase', '@vite-pwa/nuxt','@vercel/speed-insights'],
 
   app: {
     head: {
@@ -27,8 +27,22 @@ export default defineNuxtConfig({
     },
   },
 
+  runtimeConfig: {
+    vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? '',
+    vapidEmail:      process.env.VAPID_EMAIL       ?? '',
+    public: {
+      vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? '',
+    },
+  },
+
   pwa: {
     registerType: 'autoUpdate',
+
+    // Custom SW (app/sw.ts) handles push events + routing.
+    // Workbox injects the precache manifest at build time.
+    strategies: 'injectManifest',
+    srcDir:     'app',
+    filename:   'sw.ts',
 
     manifest: {
       name: 'Golf League',
@@ -48,18 +62,8 @@ export default defineNuxtConfig({
       ],
     },
 
-    workbox: {
-      // Cache all built assets; offline.html is the navigation fallback
+    injectManifest: {
       globPatterns: ['**/*.{js,css,ico,png,svg,webmanifest,html}'],
-      navigateFallback: '/offline.html',
-      // Don't fallback API/auth routes — let the browser surface the real error
-      navigateFallbackDenylist: [/^\/api\//],
-      runtimeCaching: [
-        {
-          urlPattern: /^\/api\/.*/i,
-          handler: 'NetworkOnly',
-        },
-      ],
     },
 
     client: {
@@ -68,7 +72,6 @@ export default defineNuxtConfig({
     },
 
     devOptions: {
-      // Set to true temporarily to test the SW in dev; leave off normally
       enabled: false,
       suppressWarnings: true,
       type: 'module',

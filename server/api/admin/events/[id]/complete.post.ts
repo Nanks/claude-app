@@ -8,6 +8,7 @@ import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/serve
 import type { Database } from '~~/shared/types/database.types'
 import { calcPops, calcGames, runLeaguePass } from '#server/utils/gameLogic'
 import { recalculateLeagueHandicap } from '#server/utils/handicap'
+import { sendPushToPlayers } from '#server/utils/webpush'
 
 type ScoreRow = {
   player_id: string; tees_id: string; playing_handicap: number
@@ -173,6 +174,24 @@ export default defineEventHandler(async (event) => {
         return recalculateLeagueHandicap(adminClient, pid, evt.league_id, p?.ghin ?? 0)
       })
     )
+  }
+
+  // ── Push notification: results are in ────────────────────────
+  // Get all active league members to notify
+  const { data: members } = await adminClient
+    .from('league_players')
+    .select('player_id')
+    .eq('league_id', evt.league_id)
+    .eq('active', true)
+
+  if (members?.length) {
+    const memberIds = members.map(m => m.player_id)
+    sendPushToPlayers(adminClient, memberIds, {
+      title: 'Results are in!',
+      body:  'Final results have been posted. Tap to view the leaderboard.',
+      url:   `/leagues/${evt.league_id}/events/${eventId}`,
+      tag:   `event-complete-${eventId}`,
+    }).catch(() => {})   // fire-and-forget; don't fail the request if push errors
   }
 
   return { ok: true }

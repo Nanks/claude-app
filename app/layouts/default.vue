@@ -6,6 +6,7 @@ const { hasActiveRound } = useActiveRound()
   <UApp>
     <div class="min-h-dvh flex flex-col bg-stone-50 dark:bg-stone-950">
       <AppNavbar />
+      <PushPermissionBanner />
       <main
         class="flex-1 pt-14 transition-[padding-bottom] duration-200"
         :style="hasActiveRound

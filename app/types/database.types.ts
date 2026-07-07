@@ -52,6 +52,7 @@ export type Database = {
       scores:                   ScoresTable
       player_league_handicaps:  PlayerLeagueHandicapsTable
       player_league_audit:      PlayerLeagueAuditTable
+      push_subscriptions:       PushSubscriptionsTable
     }
     Views: {
       score_totals: ScoreTotalsView
@@ -755,6 +756,38 @@ type PlayerLeagueAuditTable = {
     is_padding?:     boolean
     is_best?:        boolean
     round_position?: number
+  }
+  Relationships: []
+}
+
+
+// ------------------------------------------------------------
+// PUSH SUBSCRIPTIONS
+// ------------------------------------------------------------
+
+type PushSubscriptionsTable = {
+  Row: {
+    id:         string
+    player_id:  string
+    endpoint:   string
+    p256dh:     string
+    auth:       string
+    created_at: string
+  }
+  Insert: {
+    id?:        string
+    player_id:  string
+    endpoint:   string
+    p256dh:     string
+    auth:       string
+    created_at?: string
+  }
+  Update: {
+    id?:        string
+    player_id?: string
+    endpoint?:  string
+    p256dh?:    string
+    auth?:      string
   }
   Relationships: []
 }

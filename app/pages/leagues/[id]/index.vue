@@ -186,6 +186,14 @@ const colorMap = {
         </div>
       </div>
 
+      <!-- ── Admin broadcast ──────────────────────────── -->
+      <div v-if="isAdmin" class="flex justify-end">
+        <BroadcastNotificationModal
+          :league-id="leagueId"
+          :has-event-today="hasScoresToday"
+        />
+      </div>
+
       <!-- ── Menu card ──────────────────────────────────── -->
       <UCard :ui="{ body: 'p-0' }">
         <nav>

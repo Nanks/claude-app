@@ -1,6 +1,7 @@
 // server/api/leagues/[id]/events.post.ts
 import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
 import type { Database, EventStatus } from '~~/shared/types/database.types'
+import { sendPushToPlayers } from '#server/utils/webpush'
 
 export default defineEventHandler(async (event) => {
   const leagueId = getRouterParam(event, 'id')
@@ -95,6 +96,25 @@ export default defineEventHandler(async (event) => {
       .insert(ids.map((game_type_id) => ({ event_id: newEvent.id, game_type_id })))
 
     if (gamesError) throw createError({ statusCode: 500, statusMessage: gamesError.message })
+  }
+
+  // ── Push notification: new event added ────────────────────────
+  const { data: members } = await adminClient
+    .from('league_players')
+    .select('player_id')
+    .eq('league_id', leagueId)
+    .eq('active', true)
+
+  if (members?.length) {
+    const formatted = new Date(event_date + 'T12:00:00').toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric',
+    })
+    sendPushToPlayers(adminClient, members.map(m => m.player_id), {
+      title: 'New event added',
+      body:  `A round has been scheduled for ${formatted}.`,
+      url:   `/leagues/${leagueId}/calendar`,
+      tag:   `new-event-${newEvent.id}`,
+    }).catch(() => {})
   }
 
   return { id: newEvent.id }
