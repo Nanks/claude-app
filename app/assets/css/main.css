@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+ 
+:root {
+  --color-primary-50:  #f7fee7;
+  --color-primary-100: #ecfccb;
+  --color-primary-200: #d9f99d;
+  --color-primary-300: #bef264;
+  --color-primary-400: #a3e635;
+  --color-primary-500: #84cc16;
+  --color-primary-600: #65a30d;
+  --color-primary-700: #4d7c0f;
+  --color-primary-800: #3f6212;
+  --color-primary-900: #365314;
+  --color-primary-950: #1a2e05;
+ 
+  --color-neutral-50:  #fafaf9;
+  --color-neutral-100: #f5f5f4;
+  --color-neutral-200: #e7e5e4;
+  --color-neutral-300: #d6d3d1;
+  --color-neutral-400: #a8a29e;
+  --color-neutral-500: #78716c;
+  --color-neutral-600: #57534e;
+  --color-neutral-700: #44403c;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1c1917;
+  --color-neutral-950: #0c0a09;
+}
+
+@layer base {
+  * {
+    /* Remove the blue flash on tap (iOS/Android) */
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent double-tap zoom on iOS — interactive elements respond immediately */
+    touch-action: manipulation;
+  }
+
+  /* Remove focus ring only for pointer/touch interactions; keep it for keyboard nav */
+  button:focus:not(:focus-visible),
+  a:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Prevent elastic over-scroll on iOS that makes the page feel like it can be dragged */
+  body {
+    overscroll-behavior-y: contain;
+  }
+}

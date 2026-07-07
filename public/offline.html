@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Offline — Golf League</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #fafaf9;
+      --card:    #ffffff;
+      --border:  #e7e5e4;
+      --text:    #1c1917;
+      --sub:     #78716c;
+      --primary: #84cc16;
+      --btn-bg:  #84cc16;
+      --btn-fg:  #ffffff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:     #1c1917;
+        --card:   #292524;
+        --border: #44403c;
+        --text:   #fafaf9;
+        --sub:    #a8a29e;
+      }
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 1rem) 1.5rem env(safe-area-inset-bottom, 1rem);
+      min-height: 100dvh;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 3rem;
+      line-height: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .flag-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      margin-bottom: 1.25rem;
+    }
+
+    .flag-svg {
+      width: 2rem;
+      height: 2rem;
+      color: var(--primary);
+    }
+
+    h1 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 0.9375rem;
+      color: var(--sub);
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background: var(--primary);
+      color: var(--btn-fg);
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    button:hover  { filter: brightness(1.08); }
+    button:active { filter: brightness(0.94); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="flag-dot">
+      <svg class="flag-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 22V4" />
+        <path d="M4 4l12 4-12 4" />
+      </svg>
+    </div>
+
+    <h1>You're offline</h1>
+    <p>Check your connection and try again.<br />Scores already entered are safe.</p>
+
+    <button onclick="location.reload()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+        <path d="M21 3v5h-5" />
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+        <path d="M8 16H3v5" />
+      </svg>
+      Try again
+    </button>
+  </div>
+</body>
+</html>
