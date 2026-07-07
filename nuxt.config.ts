@@ -13,6 +13,8 @@ export default defineNuxtConfig({
       meta: [
         // viewport-fit=cover enables env(safe-area-inset-*) for iOS notch/home indicator
         { key: 'viewport', name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        // theme-color: browser chrome tint + PWA splash screen background
+        { key: 'theme-color', name: 'theme-color', content: '#84cc16' },
         // iOS PWA chrome
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
@@ -20,6 +22,8 @@ export default defineNuxtConfig({
         { name: 'msapplication-TileColor', content: '#84cc16' },
       ],
       link: [
+        // Explicit manifest link — @vite-pwa/nuxt doesn't reliably inject this in Nuxt 4
+        { key: 'manifest', rel: 'manifest', href: '/manifest.webmanifest' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
         { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
