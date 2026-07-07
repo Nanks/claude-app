@@ -1,27 +1,27 @@
 /// <reference lib="WebWorker" />
-/// <reference types="vite/client" />
 
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
 import { NetworkFirst, NetworkOnly } from 'workbox-strategies'
 
-declare let self: ServiceWorkerGlobalScope
+declare const self: ServiceWorkerGlobalScope & {
+  __WB_MANIFEST: Array<{ url: string; revision: string | null }>
+}
 
 self.skipWaiting()
 clientsClaim()
 
-// ── Precache all build assets ─────────────────────────────────
 cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
 
-// ── API routes: always network, never cache ───────────────────
+// API routes — never cache
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
   new NetworkOnly(),
 )
 
-// ── Navigation: network-first, fall back to offline page ─────
+// Navigation — network-first, offline fallback
 const navStrategy = new NetworkFirst({ cacheName: 'navigations', networkTimeoutSeconds: 5 })
 
 registerRoute(
@@ -39,13 +39,13 @@ registerRoute(
   ),
 )
 
-// ── Push: show notification ───────────────────────────────────
+// Push notifications
 self.addEventListener('push', (event) => {
-  const data    = (event as PushEvent).data?.json() ?? {}
-  const title   = (data.title as string | undefined)   ?? 'Golf League'
-  const body    = (data.body  as string | undefined)   ?? ''
-  const url     = (data.url   as string | undefined)   ?? '/'
-  const tag     = (data.tag   as string | undefined)   ?? 'golf-league'
+  const data  = event.data?.json() ?? {}
+  const title = data.title ?? 'Golf League'
+  const body  = data.body  ?? ''
+  const url   = data.url   ?? '/'
+  const tag   = data.tag   ?? 'golf-league'
 
   event.waitUntil(
     self.registration.showNotification(title, {
@@ -54,18 +54,17 @@ self.addEventListener('push', (event) => {
       badge:    '/favicon-32x32.png',
       tag,
       data:     { url },
-      renotify: !!(data.renotify),
-    } as NotificationOptions),
+      renotify: !!data.renotify,
+    }),
   )
 })
 
-// ── Notification click: focus or open the app ────────────────
+// Notification click — focus or open app
 self.addEventListener('notificationclick', (event) => {
-  const ne  = event as NotificationEvent
-  const url = (ne.notification.data?.url as string | undefined) ?? '/'
-  ne.notification.close()
+  const url = event.notification.data?.url ?? '/'
+  event.notification.close()
 
-  ne.waitUntil(
+  event.waitUntil(
     self.clients
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then((clients) => {
