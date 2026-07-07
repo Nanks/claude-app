@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     head: {
       meta: [
         // viewport-fit=cover enables env(safe-area-inset-*) for iOS notch/home indicator
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { key: 'viewport', name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         // iOS PWA chrome
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
@@ -38,11 +38,24 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
 
-    // Custom SW (app/sw.ts) handles push events + routing.
-    // srcDir '.' resolves relative to Nuxt's srcDir (app/), landing on app/sw.ts.
-    strategies: 'injectManifest',
-    srcDir:     '.',
-    filename:   'sw.ts',
+    // generateSW lets Vite-PWA build the service worker automatically —
+    // no custom TS file to compile, no srcDir resolution issues.
+    // Push/notification-click handlers live in public/push-handler.js and
+    // are pulled in via importScripts so they run inside the SW scope.
+    strategies: 'generateSW',
+
+    workbox: {
+      globPatterns: ['**/*.{js,css,ico,png,svg,webmanifest,html}'],
+      navigateFallback: '/offline.html',
+      navigateFallbackDenylist: [/^\/api\//],
+      importScripts: ['/push-handler.js'],
+      runtimeCaching: [
+        {
+          urlPattern: /^\/api\//,
+          handler: 'NetworkOnly' as const,
+        },
+      ],
+    },
 
     manifest: {
       name: 'Golf League',
@@ -60,10 +73,6 @@ export default defineNuxtConfig({
         { src: '/android-chrome-512x512.png',  sizes: '512x512', type: 'image/png' },
         { src: '/android-chrome-512x512.png',  sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       ],
-    },
-
-    injectManifest: {
-      globPatterns: ['**/*.{js,css,ico,png,svg,webmanifest,html}'],
     },
 
     client: {
