@@ -96,7 +96,10 @@ export default defineNuxtConfig({
     // Enable SSR cookies so server routes can read session
     clientOptions: {
       auth: {
-        flowType: 'pkce',
+        // implicit avoids PKCE code-verifier cookie being lost when the mail
+        // app opens the magic link in a different browser context than the one
+        // that requested it (common on iOS — PWA vs Safari vs in-app browser)
+        flowType: 'implicit',
       },
     },
     types: '~~/shared/types/database.types.ts',
