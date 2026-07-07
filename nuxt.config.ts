@@ -40,8 +40,8 @@ export default defineNuxtConfig({
 
     // Custom SW (app/sw.ts) handles push events + routing.
     // Workbox injects the precache manifest at build time.
+    // srcDir defaults to Nuxt's srcDir (app/) so sw.ts is found at app/sw.ts.
     strategies: 'injectManifest',
-    srcDir:     'app',
     filename:   'sw.ts',
 
     manifest: {
