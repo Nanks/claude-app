@@ -76,10 +76,8 @@ function normalizePhone(raw: string): string | null {
 async function save() {
   error.value = null
 
-  // Validate phone
-  const formattedPhone = normalizePhone(form.phone)
-  if (!formattedPhone) {
-    error.value = 'Enter a valid 10-digit US phone number'
+  if (!form.fname.trim() || !form.lname.trim()) {
+    error.value = 'First and last name are required'
     return
   }
 
@@ -89,15 +87,11 @@ async function save() {
     return
   }
 
-  // Duplicate check on add
-  if (!isEditMode.value) {
-    const isDuplicate = props.existingRoster.some(
-      (p) => p.phone === formattedPhone
-    )
-    if (isDuplicate) {
-      error.value = 'A player with this phone number is already on the roster'
-      return
-    }
+  // Validate phone only if provided
+  const formattedPhone = form.phone.trim() ? normalizePhone(form.phone) : null
+  if (form.phone.trim() && !formattedPhone) {
+    error.value = 'Enter a valid 10-digit US phone number'
+    return
   }
 
   isSaving.value = true
@@ -185,10 +179,7 @@ const teeOptions = ['mens', 'ladies', 'senior'] as const
 
         <!-- Phone + GHIN -->
         <div class="grid grid-cols-2 gap-3">
-          <UFormField
-            label="Phone"
-            :hint="isEditMode ? 'US number only' : undefined"
-          >
+          <UFormField label="Phone" hint="Optional">
             <UInput
               v-model="form.phone"
               type="tel"

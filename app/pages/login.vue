@@ -1,152 +1,135 @@
 <script setup lang="ts">
-definePageMeta({
-  layout: 'auth',
-})
+definePageMeta({ layout: 'auth' })
 
 const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const user     = useSupabaseUser()
 
-// Redirect if already logged in
-watch(user, (currentUser) => {
-  if (currentUser) navigateTo('/')
-}, { immediate: true })
+watch(user, (u) => { if (u) navigateTo('/') }, { immediate: true })
 
-// --- Step 1: Send OTP ---
-const phone = ref('')
-const phoneError = ref('')
-const otpSent = ref(false)
-const isSendingOtp = ref(false)
+const fname  = ref('')
+const lname  = ref('')
+const email  = ref('')
+const error  = ref('')
+const sent   = ref(false)
+const isBusy = ref(false)
 
-async function sendOtp() {
-  phoneError.value = ''
-  isSendingOtp.value = true
+async function sendLink() {
+  error.value = ''
+  isBusy.value = true
 
-  // Normalize to E.164 before sending
-  // This assumes US numbers; adjust for international support
-  const normalized = normalizePhone(phone.value)
-  if (!normalized) {
-    phoneError.value = 'Please enter a valid phone number.'
-    isSendingOtp.value = false
-    return
+  try {
+    // Step 1: server validates name + email, creates auth user on first sign-in
+    await $fetch('/api/auth/magic-link', {
+      method: 'POST',
+      body: { fname: fname.value.trim(), lname: lname.value.trim(), email: email.value.trim() },
+    })
+
+    // Step 2: send the magic link — user already exists so shouldCreateUser: false
+    const { error: otpErr } = await supabase.auth.signInWithOtp({
+      email: email.value.trim().toLowerCase(),
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/confirm`,
+      },
+    })
+
+    if (otpErr) {
+      error.value = otpErr.message
+    } else {
+      sent.value = true
+    }
+  } catch (e: any) {
+    error.value = e?.data?.statusMessage ?? 'Something went wrong. Please try again.'
+  } finally {
+    isBusy.value = false
   }
-
-  const { error } = await supabase.auth.signInWithOtp({
-    phone: normalized,
-    options: {
-      // Prevent creating a new auth user if phone not in players table.
-      // The before-user-created hook handles this server-side,
-      // but this client-side flag adds a second layer.
-      shouldCreateUser: true,
-    },
-  })
-
-  if (error) {
-    // The hook rejection surfaces here as an error message
-    phoneError.value = error.message
-  } else {
-    otpSent.value = true
-    phone.value = normalized
-  }
-
-  isSendingOtp.value = false
 }
 
-// --- Step 2: Verify OTP ---
-const otp = ref('')
-const otpError = ref('')
-const isVerifying = ref(false)
-
-async function verifyOtp() {
-  otpError.value = ''
-  isVerifying.value = true
-
-  const { error } = await supabase.auth.verifyOtp({
-    phone: phone.value,
-    token: otp.value,
-    type: 'sms',
-  })
-
-  if (error) {
-    otpError.value = error.message
-  }
-  // On success, useSupabaseUser() updates reactively and the watcher above redirects
-
-  isVerifying.value = false
-}
-
-// --- Utility ---
-function normalizePhone(raw: string): string | null {
-  // Strip all non-digit characters
-  const digits = raw.replace(/\D/g, '')
-  // Accept 10-digit US or 11-digit with leading 1
-  if (digits.length === 10) return `+1${digits}`
-  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
-  return null
-}
-
-function goBack() {
-  otpSent.value = false
-  otp.value = ''
-  otpError.value = ''
+function reset() {
+  sent.value  = false
+  error.value = ''
 }
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center">
+  <div class="min-h-screen flex items-center justify-center px-4">
     <UCard class="w-full max-w-sm">
+
       <template #header>
-        <h1 class="text-xl font-semibold text-center">Golf League Sign In</h1>
+        <div class="flex items-center justify-center gap-2 py-1">
+          <UIcon name="i-lucide-flag" class="size-5 text-primary-500" />
+          <h1 class="text-xl font-semibold">Golf League</h1>
+        </div>
       </template>
 
-      <!-- Step 1: Enter Phone -->
-      <div v-if="!otpSent" class="space-y-4">
-        <UFormField label="Phone Number" :error="phoneError">
-          <UInput
-            v-model="phone"
-            type="tel"
-            placeholder="(555) 555-5555"
-            icon="i-heroicons-phone"
-            autofocus
-            @keyup.enter="sendOtp"
-          />
-        </UFormField>
-        <UButton
-          block
-          :loading="isSendingOtp"
-          @click="sendOtp"
-        >
-          Send Code
+      <!-- Sent state ─────────────────────────────────────────── -->
+      <div v-if="sent" class="space-y-4 text-center py-2">
+        <div class="flex justify-center">
+          <div class="size-12 rounded-full bg-primary-50 dark:bg-primary-900/20
+                      flex items-center justify-center">
+            <UIcon name="i-lucide-mail-check" class="size-6 text-primary-500" />
+          </div>
+        </div>
+        <div class="space-y-1">
+          <p class="font-semibold text-stone-800 dark:text-stone-100">Check your inbox</p>
+          <p class="text-sm text-stone-500 dark:text-stone-400">
+            We sent a sign-in link to<br />
+            <span class="font-medium text-stone-700 dark:text-stone-300">
+              {{ email.trim().toLowerCase() }}
+            </span>
+          </p>
+        </div>
+        <p class="text-xs text-stone-400">
+          Link expires in 1 hour. Check your spam folder if you don't see it.
+        </p>
+        <UButton variant="ghost" block size="sm" @click="reset">
+          Try a different email
         </UButton>
       </div>
 
-      <!-- Step 2: Enter OTP -->
+      <!-- Sign-in form ────────────────────────────────────────── -->
       <div v-else class="space-y-4">
-        <p class="text-sm text-gray-500 text-center">
-          Enter the 6-digit code sent to {{ phone }}
+        <p class="text-sm text-stone-500 dark:text-stone-400 text-center">
+          Enter your name and email to receive a sign-in link.
         </p>
-        <UFormField label="Verification Code" :error="otpError">
+
+        <UAlert v-if="error" color="error" :description="error" icon="i-lucide-alert-circle" />
+
+        <div class="grid grid-cols-2 gap-3">
+          <UFormField label="First Name">
+            <UInput
+              v-model="fname"
+              placeholder="Jane"
+              autocomplete="given-name"
+              @keyup.enter="sendLink"
+            />
+          </UFormField>
+          <UFormField label="Last Name">
+            <UInput
+              v-model="lname"
+              placeholder="Smith"
+              autocomplete="family-name"
+              @keyup.enter="sendLink"
+            />
+          </UFormField>
+        </div>
+
+        <UFormField label="Email">
           <UInput
-            v-model="otp"
-            type="text"
-            inputmode="numeric"
-            maxlength="6"
-            placeholder="123456"
-            icon="i-heroicons-shield-check"
-            autofocus
-            @keyup.enter="verifyOtp"
+            v-model="email"
+            type="email"
+            placeholder="jane@example.com"
+            icon="i-lucide-mail"
+            autocomplete="email"
+            @keyup.enter="sendLink"
           />
         </UFormField>
-        <UButton
-          block
-          :loading="isVerifying"
-          @click="verifyOtp"
-        >
-          Verify & Sign In
-        </UButton>
-        <UButton variant="ghost" block @click="goBack">
-          Use a different number
+
+        <UButton block :loading="isBusy" @click="sendLink">
+          Send Magic Link
         </UButton>
       </div>
+
     </UCard>
   </div>
 </template>

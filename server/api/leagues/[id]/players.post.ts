@@ -40,8 +40,8 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { fname, lname, phone, ghin, tee_type } = body
 
-  if (!fname || !lname || !phone) {
-    throw createError({ statusCode: 400, statusMessage: 'fname, lname and phone are required' })
+  if (!fname || !lname) {
+    throw createError({ statusCode: 400, statusMessage: 'First and last name are required' })
   }
 
   // Resolve the default tees_id for this player's tee_type from the league's course.
@@ -75,36 +75,41 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check if a player with this phone already exists
+  // Deduplicate by full name (case-insensitive) — phone is optional now
   let playerId: string
 
   const { data: existing } = await adminClient
     .from('players')
     .select('id')
-    .eq('phone', phone)
+    .ilike('fname', fname.trim())
+    .ilike('lname', lname.trim())
     .maybeSingle()
 
   if (existing) {
     playerId = existing.id
 
-    // Update their details in case they changed
-    await adminClient
-      .from('players')
-      .update({ fname, lname, ghin, tee_type, tees_id: defaultTee.tees_id })
-      .eq('id', playerId)
+    // Refresh their details in case anything changed
+    await adminClient.from('players').update({
+      fname:    fname.trim(),
+      lname:    lname.trim(),
+      phone:    phone ?? null,
+      ghin,
+      tee_type: effectiveTeeType,
+      tees_id:  defaultTee.tees_id,
+    }).eq('id', playerId)
 
   } else {
-    // Create new player
+    // Create new player — phone is optional
     const { data: newPlayer, error: createError_ } = await adminClient
       .from('players')
       .insert({
-        fname,
-        lname,
-        phone,
+        fname:    fname.trim(),
+        lname:    lname.trim(),
+        phone:    phone ?? null,
         ghin,
-        tee_type,
-        tees_id: defaultTee.tees_id,
-        active:  true,
+        tee_type: effectiveTeeType,
+        tees_id:  defaultTee.tees_id,
+        active:   true,
       })
       .select('id')
       .single()

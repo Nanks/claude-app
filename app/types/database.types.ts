@@ -213,7 +213,8 @@ type PlayersTable = {
     auth_user_id: string | null
     fname:        string
     lname:        string
-    phone:        string
+    phone:        string | null
+    email:        string | null
     ghin:         number | null
     tee_type:     TeeType
     tees_id:      string
@@ -228,7 +229,8 @@ type PlayersTable = {
     auth_user_id?: string | null
     fname:         string
     lname:         string
-    phone:         string
+    phone?:        string | null
+    email?:        string | null
     ghin?:         number | null
     tee_type:      TeeType
     tees_id:       string
@@ -244,6 +246,7 @@ type PlayersTable = {
     fname?:        string
     lname?:        string
     phone?:        string
+    email?:        string | null
     ghin?:         number | null
     tee_type?:     TeeType
     tees_id?:      string
