@@ -95,24 +95,25 @@ function reset() {
 
         <UAlert v-if="error" color="error" :description="error" icon="i-lucide-alert-circle" />
 
-        <div class="grid grid-cols-2 gap-3">
-          <UFormField label="First Name">
-            <UInput
-              v-model="fname"
-              placeholder="Jane"
-              autocomplete="given-name"
-              @keyup.enter="sendLink"
-            />
-          </UFormField>
-          <UFormField label="Last Name">
-            <UInput
-              v-model="lname"
-              placeholder="Smith"
-              autocomplete="family-name"
-              @keyup.enter="sendLink"
-            />
-          </UFormField>
-        </div>
+        <UFormField label="First Name">
+          <UInput
+            v-model="fname"
+            placeholder="Jane"
+            autocomplete="given-name"
+            class="w-full"
+            @keyup.enter="sendLink"
+          />
+        </UFormField>
+
+        <UFormField label="Last Name">
+          <UInput
+            v-model="lname"
+            placeholder="Smith"
+            autocomplete="family-name"
+            class="w-full"
+            @keyup.enter="sendLink"
+          />
+        </UFormField>
 
         <UFormField label="Email">
           <UInput
@@ -121,6 +122,7 @@ function reset() {
             placeholder="jane@example.com"
             icon="i-lucide-mail"
             autocomplete="email"
+            class="w-full"
             @keyup.enter="sendLink"
           />
         </UFormField>
