@@ -201,7 +201,7 @@ const colorMap = {
             v-for="(item, index) in visibleItems"
             :key="item.to"
             :to="item.to"
-            class="group flex items-center gap-3 px-4 py-3.5
+            class="group flex items-center gap-4 px-4 py-4
                    transition-colors duration-150
                    hover:bg-stone-50 dark:hover:bg-stone-800/60
                    active:bg-stone-100 dark:active:bg-stone-800"
@@ -213,14 +213,14 @@ const colorMap = {
           >
             <!-- Icon -->
             <div
-              class="size-8 rounded-lg flex items-center justify-center shrink-0
+              class="size-10 rounded-lg flex items-center justify-center shrink-0
                      bg-stone-100 dark:bg-stone-800
                      group-hover:bg-stone-200 dark:group-hover:bg-stone-700
                      transition-colors"
             >
               <UIcon
                 :name="item.icon"
-                class="size-4 transition-colors"
+                class="size-5 transition-colors"
                 :class="[
                   colorMap[item.color ?? 'stone'],
                   item.pulse ? 'animate-pulse' : ''
@@ -230,7 +230,7 @@ const colorMap = {
 
             <!-- Label -->
             <span
-              class="flex-1 text-sm font-medium text-stone-800 dark:text-stone-200"
+              class="flex-1 text-base font-medium text-stone-800 dark:text-stone-200"
             >
               {{ item.label }}
             </span>
@@ -244,7 +244,7 @@ const colorMap = {
             <!-- Chevron -->
             <UIcon
               name="i-lucide-chevron-right"
-              class="size-4 text-stone-400 dark:text-stone-600 shrink-0"
+              class="size-5 text-stone-400 dark:text-stone-600 shrink-0"
             />
           </NuxtLink>
         </nav>
