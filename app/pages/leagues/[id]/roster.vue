@@ -161,20 +161,8 @@ async function recalculateHandicaps() {
       >
         <div class="flex items-center justify-between">
 
-          <!-- Left: avatar + info -->
-          <div class="flex items-center gap-2.5 min-w-0">
-
-            <!-- Avatar initials -->
-            <div
-              class="flex items-center justify-center size-8 rounded-full
-                     shrink-0 bg-stone-100 dark:bg-stone-800
-                     text-stone-700 dark:text-stone-300 font-bold text-xs"
-            >
-              {{ `${member.firstName?.charAt(0) ?? ''}${member.lastName?.charAt(0) ?? ''}`.toUpperCase() }}
-            </div>
-
-            <!-- Name + details -->
-            <div class="min-w-0">
+          <!-- Left: info -->
+          <div class="min-w-0">
               <div class="flex items-center gap-1.5 leading-none">
                 <span
                   class="font-semibold text-sm text-stone-900 dark:text-stone-100 truncate"
@@ -200,10 +188,10 @@ async function recalculateHandicaps() {
                 <!-- GHIN with edit -->
                 <div
                   class="inline-flex items-center gap-1 bg-stone-100
-                         dark:bg-stone-800 text-stone-800 dark:text-stone-200
-                         px-1.5 py-0.5 rounded font-medium text-[10px]"
+                         dark:bg-stone-800 px-1.5 py-0.5 rounded"
                 >
-                  <span>GHIN: {{ member.ghin ?? '—' }}</span>
+                  <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500">GHIN</span>
+                  <span class="text-sm font-bold font-mono text-stone-800 dark:text-stone-200">{{ member.ghin ?? '—' }}</span>
                   <GhinEditModal
                     v-if="access.isAdmin || access.myPlayerId === member.id"
                     :player-id="member.id"
@@ -223,7 +211,6 @@ async function recalculateHandicaps() {
                   @saved="refresh()"
                 />
               </div>
-            </div>
           </div>
 
           <!-- Right: handicap -->

@@ -10,7 +10,8 @@ const player     = computed(() => data.value?.player  ?? null)
 const allLeagues = computed(() => data.value?.leagues ?? [])
 
 // ── Today's round detection ───────────────────────────────────
-const localDate = new Date().toISOString().slice(0, 10)
+const _now = new Date()
+const localDate = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`
 const { data: todayData } = await useFetch('/api/me/today', {
   query: { date: localDate },
   default: () => null,

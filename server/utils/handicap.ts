@@ -8,8 +8,11 @@ export async function recalculateLeagueHandicap(
   leagueId: string, 
   ghinFallback: number
 ) {
-  // 1. Fetch the last 10 completed scores with tee rating/slope
-  const { data: scoresData, error: scoresError } = await adminClient
+  // 1. Fetch all completed scores for this player/league with tee rating/slope.
+  //    Do NOT use .order({ foreignTable }) or .limit() here — foreignTable ordering
+  //    is silently ignored in Supabase JS v2, causing the oldest rows to be returned
+  //    instead of the most recent. Sort by event_date in JS then take the top 10.
+  const { data: allScores, error: scoresError } = await adminClient
     .from('scores')
     .select(`
       id,
@@ -21,28 +24,33 @@ export async function recalculateLeagueHandicap(
     .eq('player_id', playerId)
     .eq('league_id', leagueId)
     .eq('events.status', 'complete')
-    // <-- FIX 2: Correct Supabase syntax for sorting by a joined table
-    .order('event_date', { foreignTable: 'events', ascending: false })
-    .limit(10)
 
-  // <-- FIX 3: Catch and throw DB errors instead of silently failing!
   if (scoresError) {
     console.error('Failed to fetch scores for handicap:', scoresError)
     throw new Error(`Failed to fetch scores: ${scoresError.message}`)
   }
 
+  // Sort by event_date descending in JS, then keep only the 10 most recent.
+  const scoresData = (allScores ?? [])
+    .sort((a, b) => {
+      const dateA = (Array.isArray(a.events) ? a.events[0]?.event_date : a.events?.event_date) ?? ''
+      const dateB = (Array.isArray(b.events) ? b.events[0]?.event_date : b.events?.event_date) ?? ''
+      return dateB.localeCompare(dateA)
+    })
+    .slice(0, 10)
+
   // 2. Transform scores into audit records
   const auditRecords: any[] = []
-  
-  if (scoresData) {
+
+  if (scoresData.length > 0) {
     scoresData.forEach((score, index) => {
       const holes = [
         score.hole_1, score.hole_2, score.hole_3, score.hole_4, score.hole_5, score.hole_6, score.hole_7, score.hole_8, score.hole_9,
         score.hole_10, score.hole_11, score.hole_12, score.hole_13, score.hole_14, score.hole_15, score.hole_16, score.hole_17, score.hole_18
       ]
       const rawGross = holes.reduce((sum: number, h) => sum + (h || 0), 0)
-      const adjustedGross = rawGross 
-      
+      const adjustedGross = rawGross
+
       const eventDate = Array.isArray(score.events) ? score.events[0]?.event_date : score.events?.event_date
       const rating = Array.isArray(score.tees) ? score.tees[0]?.rating : score.tees?.rating
       const slope = Array.isArray(score.tees) ? score.tees[0]?.slope : score.tees?.slope

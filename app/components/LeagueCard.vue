@@ -55,16 +55,16 @@ const formattedDate = computed(() => {
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
           <span class="font-semibold text-base text-stone-900 dark:text-stone-100 truncate">
-            {{ league.name }}
+            {{ league.short_name }}
           </span>
-          <UBadge
+          <span
             v-if="league.isLive"
-            label="LIVE"
-            color="success"
-            variant="solid"
-            size="xs"
-            class="animate-pulse shrink-0"
-          />
+            class="animate-pulse shrink-0 inline-flex items-center rounded
+                   px-1.5 py-0.5 text-[10px] font-bold tracking-wide
+                   bg-primary-500 text-stone-800"
+          >
+            LIVE
+          </span>
           <UIcon
             v-if="league.isAdmin"
             name="i-lucide-crown"

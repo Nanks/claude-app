@@ -94,6 +94,14 @@ function teeColorClass(name: string | null): string {
   return teeColorMap[key] ?? 'text-stone-400 dark:text-stone-500'
 }
 
+// When multiple games on an event, abbreviate to first initial of each word.
+// e.g. "Birdies" → "B", "Net Skins" → "NS". Single game shows full name.
+function gameBadgeLabel(name: string, totalGames: number): string {
+  const titled = name.replace(/\b\w/g, c => c.toUpperCase())
+  if (totalGames <= 1) return titled
+  return name.split(/\s+/).map(w => w[0].toUpperCase()).join('')
+}
+
 function formatDate(dateStr: string) {
   const [y, m, d] = dateStr.split('-').map(Number)
   return new Date(y, m - 1, d).toLocaleDateString('en-US', {
@@ -228,28 +236,40 @@ const statusColor: Record<EventStatus, BadgeColor> = {
           </div>
           <div
             v-if="evt.tee_name || evt.double_birdie_holes?.length || evt.game_names.length"
-            class="flex items-center gap-2 mt-0.5 flex-wrap"
+            class="mt-0.5 space-y-1"
           >
-            <span
-              v-if="evt.tee_name"
-              class="text-[11px]"
-              :class="teeColorClass(evt.tee_name)"
+            <!-- Tees + double-birdie holes -->
+            <div
+              v-if="evt.tee_name || evt.double_birdie_holes?.length"
+              class="flex items-center gap-2 flex-wrap"
             >
-              {{ evt.tee_name }}
-            </span>
-            <span
-              v-for="name in evt.game_names"
-              :key="name"
-              class="text-[11px] text-sky-500 dark:text-sky-400 font-medium capitalize"
-            >
-              {{ name }}
-            </span>
-            <span
-              v-if="evt.double_birdie_holes && evt.double_birdie_holes.length > 0"
-              class="text-[11px] text-amber-500 dark:text-amber-400 font-medium"
-            >
-              ★ {{ evt.double_birdie_holes.join(', ') }}
-            </span>
+              <span
+                v-if="evt.tee_name"
+                class="text-[11px]"
+                :class="teeColorClass(evt.tee_name)"
+              >
+                {{ evt.tee_name }} Tees
+              </span>
+              <span
+                v-if="evt.double_birdie_holes && evt.double_birdie_holes.length > 0"
+                class="inline-flex items-center gap-0.5 text-[11px] text-amber-500 dark:text-amber-400 font-medium"
+              >
+                <UIcon name="i-lucide-bird" class="size-3" />
+                {{ evt.double_birdie_holes.join(', ') }}
+              </span>
+            </div>
+
+            <!-- Game badges -->
+            <div v-if="evt.game_names.length" class="flex items-center gap-1 flex-wrap">
+              <UBadge
+                v-for="name in evt.game_names"
+                :key="name"
+                :label="gameBadgeLabel(name, evt.game_names.length)"
+                color="info"
+                variant="subtle"
+                size="xs"
+              />
+            </div>
           </div>
         </div>
 
