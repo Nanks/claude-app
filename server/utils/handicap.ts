@@ -30,8 +30,17 @@ export async function recalculateLeagueHandicap(
     throw new Error(`Failed to fetch scores: ${scoresError.message}`)
   }
 
-  // Sort by event_date descending in JS, then keep only the 10 most recent.
+  // Keep only scores where every hole has a non-null, non-zero value.
+  // Zero means the hole was never entered — those rounds are incomplete.
+  const HOLE_KEYS = [
+    'hole_1',  'hole_2',  'hole_3',  'hole_4',  'hole_5',  'hole_6',
+    'hole_7',  'hole_8',  'hole_9',  'hole_10', 'hole_11', 'hole_12',
+    'hole_13', 'hole_14', 'hole_15', 'hole_16', 'hole_17', 'hole_18',
+  ] as const
+
+  // Sort by event_date descending in JS, filter incomplete rounds, keep the 10 most recent.
   const scoresData = (allScores ?? [])
+    .filter(score => HOLE_KEYS.every(k => score[k] !== null && score[k] !== undefined && score[k] !== 0))
     .sort((a, b) => {
       const dateA = (Array.isArray(a.events) ? a.events[0]?.event_date : a.events?.event_date) ?? ''
       const dateB = (Array.isArray(b.events) ? b.events[0]?.event_date : b.events?.event_date) ?? ''
