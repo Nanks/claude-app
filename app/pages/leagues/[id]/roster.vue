@@ -123,10 +123,17 @@ async function recalculateHandicaps() {
         v-if="isManageMode && access.isAdmin"
         class="flex items-center gap-2 mb-3 px-1"
       >
-        <!-- Add player -->
+        <!-- Create new player -->
         <AdminPlayerModal
           :league-id="leagueId"
           :existing-roster="roster"
+          :league-tee-type="leagueTeeType"
+          @saved="refresh()"
+        />
+
+        <!-- Add existing player -->
+        <AddExistingPlayerModal
+          :league-id="leagueId"
           :league-tee-type="leagueTeeType"
           @saved="refresh()"
         />

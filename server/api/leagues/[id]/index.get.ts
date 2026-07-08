@@ -1,8 +1,7 @@
 // server/api/leagues/[id].get.ts
 // Returns everything the league detail page needs in one request.
 
-import { serverSupabaseServiceRole } from '#supabase/server'
-import { requireAuth } from '#server/utils/requireAuth'
+import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const adminClient = serverSupabaseServiceRole(event)
@@ -11,17 +10,21 @@ export default defineEventHandler(async (event) => {
 
   // Auth is optional — anon users can view public league info
   let playerId: string | null = null
+  let isSuperAdmin = false
 
-  try {
-    const user = await requireAuth(event)
+  const { data: authData } = await serverSupabaseClient(event).auth.getUser()
+  const authUser = authData?.user
+
+  if (authUser?.id) {
     const { data: player } = await adminClient
       .from('players')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-    playerId = player?.id ?? null
-  } catch {
-    // Not authenticated — that's fine, page is viewable by anon
+      .select('id, is_super_admin')
+      .eq('auth_user_id', authUser.id)
+      .maybeSingle()
+    if (player) {
+      playerId    = player.id
+      isSuperAdmin = player.is_super_admin ?? false
+    }
   }
 
   // ── League ────────────────────────────────────────────────
@@ -84,8 +87,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // ── Player membership ─────────────────────────────────────
-  let isMember  = false
-  let isAdmin   = false
+  let isMember = false
+  let isAdmin  = isSuperAdmin
 
   if (playerId) {
     const { data: membership } = await adminClient
@@ -97,7 +100,7 @@ export default defineEventHandler(async (event) => {
       .maybeSingle()
 
     isMember = membership?.is_player ?? false
-    isAdmin  = membership?.is_admin  ?? false
+    if (!isAdmin) isAdmin = membership?.is_admin ?? false
   }
 
   return {
