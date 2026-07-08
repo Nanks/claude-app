@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
   let playerId: string | null = null
   let isSuperAdmin = false
 
-  const { data: authData } = await serverSupabaseClient(event).auth.getUser()
+  const userClient = await serverSupabaseClient(event)
+  const { data: authData } = await userClient.auth.getUser()
   const authUser = authData?.user
 
   if (authUser?.id) {
